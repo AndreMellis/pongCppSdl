@@ -1,5 +1,6 @@
 #include "Dot.h"
 #include <cstdlib>
+#include <cstdio>
 #include <vector>
 
 Dot::Dot()
@@ -65,10 +66,7 @@ bool Dot::collidedSide()
 	{
 		//we collided with the left wall
 		return 1;
-	} else if (collidedWithRightPaddle())
-	{ // we collided with the right paddle
-		return 1;
-	} else
+	} else 
 	{
 		return 0;
 	}
@@ -103,14 +101,34 @@ void Dot::move()
 		return; //break out early
 	}
 
-	if (collidedTop())
+	if (collidedWithRightPaddle())
+	{ // I will check if the middle of the dot is in the upper portion of the paddle
+		int middleOfDot = (dotShape.h + dotShape.y) / 2; //pixel that the middle of the dot is on
+		int bottomOfDot = dotShape.h + dotShape.y;
+
+		SDL_Rect *pRightPaddle = pColliders->getCollider(PLAYERTWO_PADDLE_COLLIDER);
+		int topOfPaddle = (int)( pRightPaddle->y + ( pRightPaddle->h / 2 ) );
+		int bottomOfPaddle = (int)( pRightPaddle->y + ( pRightPaddle->h * 0.66) );
+
+		if(bottomOfDot > pRightPaddle->y && bottomOfDot < topOfPaddle)
+		{ // bounce the dot up
+			mVelY = DOT_VEL * -1;
+			mVelX = DOT_VEL * -1;
+		} else if ( bottomOfDot > bottomOfPaddle && bottomOfDot < ( pRightPaddle->y + pRightPaddle->h ) )
+		{ //bounce down
+			mVelY = DOT_VEL;
+			mVelX = DOT_VEL * -1;
+		} else
+		{ // go straight
+			mVelY = 0;
+			mVelX = DOT_VEL * -1;
+		}
+	} else if (collidedTop())
 	{
 		mPosY -= mVelY; //back up
 		mVelY = mVelY * -1; //flip the direction it's going
 		mPosY += mVelY; // keep moving
-	}
-
-	if (collidedSide())
+	} else if (collidedSide())
 	{
 		mPosX -= mVelX; //back up
 		mVelX = mVelX * -1; //flip the direction it's going
